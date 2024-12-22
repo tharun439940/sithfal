@@ -1,0 +1,366 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": []
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "phIXSFpkSPUV",
+        "outputId": "e2c15b00-5926-4c4f-c666-968a3c64d193"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Requirement already satisfied: PyPDF2 in /usr/local/lib/python3.10/dist-packages (3.0.1)\n",
+            "Requirement already satisfied: langchain in /usr/local/lib/python3.10/dist-packages (0.3.13)\n",
+            "Requirement already satisfied: openai in /usr/local/lib/python3.10/dist-packages (1.57.4)\n",
+            "Requirement already satisfied: faiss-cpu in /usr/local/lib/python3.10/dist-packages (1.9.0.post1)\n",
+            "Requirement already satisfied: PyYAML>=5.3 in /usr/local/lib/python3.10/dist-packages (from langchain) (6.0.2)\n",
+            "Requirement already satisfied: SQLAlchemy<3,>=1.4 in /usr/local/lib/python3.10/dist-packages (from langchain) (2.0.36)\n",
+            "Requirement already satisfied: aiohttp<4.0.0,>=3.8.3 in /usr/local/lib/python3.10/dist-packages (from langchain) (3.11.10)\n",
+            "Requirement already satisfied: async-timeout<5.0.0,>=4.0.0 in /usr/local/lib/python3.10/dist-packages (from langchain) (4.0.3)\n",
+            "Requirement already satisfied: langchain-core<0.4.0,>=0.3.26 in /usr/local/lib/python3.10/dist-packages (from langchain) (0.3.28)\n",
+            "Requirement already satisfied: langchain-text-splitters<0.4.0,>=0.3.3 in /usr/local/lib/python3.10/dist-packages (from langchain) (0.3.3)\n",
+            "Requirement already satisfied: langsmith<0.3,>=0.1.17 in /usr/local/lib/python3.10/dist-packages (from langchain) (0.2.3)\n",
+            "Requirement already satisfied: numpy<2,>=1.22.4 in /usr/local/lib/python3.10/dist-packages (from langchain) (1.26.4)\n",
+            "Requirement already satisfied: pydantic<3.0.0,>=2.7.4 in /usr/local/lib/python3.10/dist-packages (from langchain) (2.10.3)\n",
+            "Requirement already satisfied: requests<3,>=2 in /usr/local/lib/python3.10/dist-packages (from langchain) (2.32.3)\n",
+            "Requirement already satisfied: tenacity!=8.4.0,<10,>=8.1.0 in /usr/local/lib/python3.10/dist-packages (from langchain) (9.0.0)\n",
+            "Requirement already satisfied: anyio<5,>=3.5.0 in /usr/local/lib/python3.10/dist-packages (from openai) (3.7.1)\n",
+            "Requirement already satisfied: distro<2,>=1.7.0 in /usr/local/lib/python3.10/dist-packages (from openai) (1.9.0)\n",
+            "Requirement already satisfied: httpx<1,>=0.23.0 in /usr/local/lib/python3.10/dist-packages (from openai) (0.28.1)\n",
+            "Requirement already satisfied: jiter<1,>=0.4.0 in /usr/local/lib/python3.10/dist-packages (from openai) (0.8.2)\n",
+            "Requirement already satisfied: sniffio in /usr/local/lib/python3.10/dist-packages (from openai) (1.3.1)\n",
+            "Requirement already satisfied: tqdm>4 in /usr/local/lib/python3.10/dist-packages (from openai) (4.67.1)\n",
+            "Requirement already satisfied: typing-extensions<5,>=4.11 in /usr/local/lib/python3.10/dist-packages (from openai) (4.12.2)\n",
+            "Requirement already satisfied: packaging in /usr/local/lib/python3.10/dist-packages (from faiss-cpu) (24.2)\n",
+            "Requirement already satisfied: aiohappyeyeballs>=2.3.0 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain) (2.4.4)\n",
+            "Requirement already satisfied: aiosignal>=1.1.2 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain) (1.3.2)\n",
+            "Requirement already satisfied: attrs>=17.3.0 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain) (24.3.0)\n",
+            "Requirement already satisfied: frozenlist>=1.1.1 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain) (1.5.0)\n",
+            "Requirement already satisfied: multidict<7.0,>=4.5 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain) (6.1.0)\n",
+            "Requirement already satisfied: propcache>=0.2.0 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain) (0.2.1)\n",
+            "Requirement already satisfied: yarl<2.0,>=1.17.0 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain) (1.18.3)\n",
+            "Requirement already satisfied: idna>=2.8 in /usr/local/lib/python3.10/dist-packages (from anyio<5,>=3.5.0->openai) (3.10)\n",
+            "Requirement already satisfied: exceptiongroup in /usr/local/lib/python3.10/dist-packages (from anyio<5,>=3.5.0->openai) (1.2.2)\n",
+            "Requirement already satisfied: certifi in /usr/local/lib/python3.10/dist-packages (from httpx<1,>=0.23.0->openai) (2024.12.14)\n",
+            "Requirement already satisfied: httpcore==1.* in /usr/local/lib/python3.10/dist-packages (from httpx<1,>=0.23.0->openai) (1.0.7)\n",
+            "Requirement already satisfied: h11<0.15,>=0.13 in /usr/local/lib/python3.10/dist-packages (from httpcore==1.*->httpx<1,>=0.23.0->openai) (0.14.0)\n",
+            "Requirement already satisfied: jsonpatch<2.0,>=1.33 in /usr/local/lib/python3.10/dist-packages (from langchain-core<0.4.0,>=0.3.26->langchain) (1.33)\n",
+            "Requirement already satisfied: orjson<4.0.0,>=3.9.14 in /usr/local/lib/python3.10/dist-packages (from langsmith<0.3,>=0.1.17->langchain) (3.10.12)\n",
+            "Requirement already satisfied: requests-toolbelt<2.0.0,>=1.0.0 in /usr/local/lib/python3.10/dist-packages (from langsmith<0.3,>=0.1.17->langchain) (1.0.0)\n",
+            "Requirement already satisfied: annotated-types>=0.6.0 in /usr/local/lib/python3.10/dist-packages (from pydantic<3.0.0,>=2.7.4->langchain) (0.7.0)\n",
+            "Requirement already satisfied: pydantic-core==2.27.1 in /usr/local/lib/python3.10/dist-packages (from pydantic<3.0.0,>=2.7.4->langchain) (2.27.1)\n",
+            "Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.10/dist-packages (from requests<3,>=2->langchain) (3.4.0)\n",
+            "Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.10/dist-packages (from requests<3,>=2->langchain) (2.2.3)\n",
+            "Requirement already satisfied: greenlet!=0.4.17 in /usr/local/lib/python3.10/dist-packages (from SQLAlchemy<3,>=1.4->langchain) (3.1.1)\n",
+            "Requirement already satisfied: jsonpointer>=1.9 in /usr/local/lib/python3.10/dist-packages (from jsonpatch<2.0,>=1.33->langchain-core<0.4.0,>=0.3.26->langchain) (3.0.0)\n"
+          ]
+        }
+      ],
+      "source": [
+        "pip install PyPDF2 langchain openai faiss-cpu"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "pip install langchain-community\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "D98gSvV4SkS5",
+        "outputId": "99a7db6c-f39c-4fb4-ece6-2fa5a8455985"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Requirement already satisfied: langchain-community in /usr/local/lib/python3.10/dist-packages (0.3.13)\n",
+            "Requirement already satisfied: PyYAML>=5.3 in /usr/local/lib/python3.10/dist-packages (from langchain-community) (6.0.2)\n",
+            "Requirement already satisfied: SQLAlchemy<3,>=1.4 in /usr/local/lib/python3.10/dist-packages (from langchain-community) (2.0.36)\n",
+            "Requirement already satisfied: aiohttp<4.0.0,>=3.8.3 in /usr/local/lib/python3.10/dist-packages (from langchain-community) (3.11.10)\n",
+            "Requirement already satisfied: dataclasses-json<0.7,>=0.5.7 in /usr/local/lib/python3.10/dist-packages (from langchain-community) (0.6.7)\n",
+            "Requirement already satisfied: httpx-sse<0.5.0,>=0.4.0 in /usr/local/lib/python3.10/dist-packages (from langchain-community) (0.4.0)\n",
+            "Requirement already satisfied: langchain<0.4.0,>=0.3.13 in /usr/local/lib/python3.10/dist-packages (from langchain-community) (0.3.13)\n",
+            "Requirement already satisfied: langchain-core<0.4.0,>=0.3.27 in /usr/local/lib/python3.10/dist-packages (from langchain-community) (0.3.28)\n",
+            "Requirement already satisfied: langsmith<0.3,>=0.1.125 in /usr/local/lib/python3.10/dist-packages (from langchain-community) (0.2.3)\n",
+            "Requirement already satisfied: numpy<2,>=1.22.4 in /usr/local/lib/python3.10/dist-packages (from langchain-community) (1.26.4)\n",
+            "Requirement already satisfied: pydantic-settings<3.0.0,>=2.4.0 in /usr/local/lib/python3.10/dist-packages (from langchain-community) (2.7.0)\n",
+            "Requirement already satisfied: requests<3,>=2 in /usr/local/lib/python3.10/dist-packages (from langchain-community) (2.32.3)\n",
+            "Requirement already satisfied: tenacity!=8.4.0,<10,>=8.1.0 in /usr/local/lib/python3.10/dist-packages (from langchain-community) (9.0.0)\n",
+            "Requirement already satisfied: aiohappyeyeballs>=2.3.0 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (2.4.4)\n",
+            "Requirement already satisfied: aiosignal>=1.1.2 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (1.3.2)\n",
+            "Requirement already satisfied: async-timeout<6.0,>=4.0 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (4.0.3)\n",
+            "Requirement already satisfied: attrs>=17.3.0 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (24.3.0)\n",
+            "Requirement already satisfied: frozenlist>=1.1.1 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (1.5.0)\n",
+            "Requirement already satisfied: multidict<7.0,>=4.5 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (6.1.0)\n",
+            "Requirement already satisfied: propcache>=0.2.0 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (0.2.1)\n",
+            "Requirement already satisfied: yarl<2.0,>=1.17.0 in /usr/local/lib/python3.10/dist-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (1.18.3)\n",
+            "Requirement already satisfied: marshmallow<4.0.0,>=3.18.0 in /usr/local/lib/python3.10/dist-packages (from dataclasses-json<0.7,>=0.5.7->langchain-community) (3.23.2)\n",
+            "Requirement already satisfied: typing-inspect<1,>=0.4.0 in /usr/local/lib/python3.10/dist-packages (from dataclasses-json<0.7,>=0.5.7->langchain-community) (0.9.0)\n",
+            "Requirement already satisfied: langchain-text-splitters<0.4.0,>=0.3.3 in /usr/local/lib/python3.10/dist-packages (from langchain<0.4.0,>=0.3.13->langchain-community) (0.3.3)\n",
+            "Requirement already satisfied: pydantic<3.0.0,>=2.7.4 in /usr/local/lib/python3.10/dist-packages (from langchain<0.4.0,>=0.3.13->langchain-community) (2.10.3)\n",
+            "Requirement already satisfied: jsonpatch<2.0,>=1.33 in /usr/local/lib/python3.10/dist-packages (from langchain-core<0.4.0,>=0.3.27->langchain-community) (1.33)\n",
+            "Requirement already satisfied: packaging<25,>=23.2 in /usr/local/lib/python3.10/dist-packages (from langchain-core<0.4.0,>=0.3.27->langchain-community) (24.2)\n",
+            "Requirement already satisfied: typing-extensions>=4.7 in /usr/local/lib/python3.10/dist-packages (from langchain-core<0.4.0,>=0.3.27->langchain-community) (4.12.2)\n",
+            "Requirement already satisfied: httpx<1,>=0.23.0 in /usr/local/lib/python3.10/dist-packages (from langsmith<0.3,>=0.1.125->langchain-community) (0.28.1)\n",
+            "Requirement already satisfied: orjson<4.0.0,>=3.9.14 in /usr/local/lib/python3.10/dist-packages (from langsmith<0.3,>=0.1.125->langchain-community) (3.10.12)\n",
+            "Requirement already satisfied: requests-toolbelt<2.0.0,>=1.0.0 in /usr/local/lib/python3.10/dist-packages (from langsmith<0.3,>=0.1.125->langchain-community) (1.0.0)\n",
+            "Requirement already satisfied: python-dotenv>=0.21.0 in /usr/local/lib/python3.10/dist-packages (from pydantic-settings<3.0.0,>=2.4.0->langchain-community) (1.0.1)\n",
+            "Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.10/dist-packages (from requests<3,>=2->langchain-community) (3.4.0)\n",
+            "Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.10/dist-packages (from requests<3,>=2->langchain-community) (3.10)\n",
+            "Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.10/dist-packages (from requests<3,>=2->langchain-community) (2.2.3)\n",
+            "Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.10/dist-packages (from requests<3,>=2->langchain-community) (2024.12.14)\n",
+            "Requirement already satisfied: greenlet!=0.4.17 in /usr/local/lib/python3.10/dist-packages (from SQLAlchemy<3,>=1.4->langchain-community) (3.1.1)\n",
+            "Requirement already satisfied: anyio in /usr/local/lib/python3.10/dist-packages (from httpx<1,>=0.23.0->langsmith<0.3,>=0.1.125->langchain-community) (3.7.1)\n",
+            "Requirement already satisfied: httpcore==1.* in /usr/local/lib/python3.10/dist-packages (from httpx<1,>=0.23.0->langsmith<0.3,>=0.1.125->langchain-community) (1.0.7)\n",
+            "Requirement already satisfied: h11<0.15,>=0.13 in /usr/local/lib/python3.10/dist-packages (from httpcore==1.*->httpx<1,>=0.23.0->langsmith<0.3,>=0.1.125->langchain-community) (0.14.0)\n",
+            "Requirement already satisfied: jsonpointer>=1.9 in /usr/local/lib/python3.10/dist-packages (from jsonpatch<2.0,>=1.33->langchain-core<0.4.0,>=0.3.27->langchain-community) (3.0.0)\n",
+            "Requirement already satisfied: annotated-types>=0.6.0 in /usr/local/lib/python3.10/dist-packages (from pydantic<3.0.0,>=2.7.4->langchain<0.4.0,>=0.3.13->langchain-community) (0.7.0)\n",
+            "Requirement already satisfied: pydantic-core==2.27.1 in /usr/local/lib/python3.10/dist-packages (from pydantic<3.0.0,>=2.7.4->langchain<0.4.0,>=0.3.13->langchain-community) (2.27.1)\n",
+            "Requirement already satisfied: mypy-extensions>=0.3.0 in /usr/local/lib/python3.10/dist-packages (from typing-inspect<1,>=0.4.0->dataclasses-json<0.7,>=0.5.7->langchain-community) (1.0.0)\n",
+            "Requirement already satisfied: sniffio>=1.1 in /usr/local/lib/python3.10/dist-packages (from anyio->httpx<1,>=0.23.0->langsmith<0.3,>=0.1.125->langchain-community) (1.3.1)\n",
+            "Requirement already satisfied: exceptiongroup in /usr/local/lib/python3.10/dist-packages (from anyio->httpx<1,>=0.23.0->langsmith<0.3,>=0.1.125->langchain-community) (1.2.2)\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "pip install tiktoken\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "r7AbrY28SsSz",
+        "outputId": "17c9aa3b-6ae8-4fb6-eebb-eb832036667c"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Requirement already satisfied: tiktoken in /usr/local/lib/python3.10/dist-packages (0.8.0)\n",
+            "Requirement already satisfied: regex>=2022.1.18 in /usr/local/lib/python3.10/dist-packages (from tiktoken) (2024.11.6)\n",
+            "Requirement already satisfied: requests>=2.26.0 in /usr/local/lib/python3.10/dist-packages (from tiktoken) (2.32.3)\n",
+            "Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.10/dist-packages (from requests>=2.26.0->tiktoken) (3.4.0)\n",
+            "Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.10/dist-packages (from requests>=2.26.0->tiktoken) (3.10)\n",
+            "Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.10/dist-packages (from requests>=2.26.0->tiktoken) (2.2.3)\n",
+            "Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.10/dist-packages (from requests>=2.26.0->tiktoken) (2024.12.14)\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import os\n",
+        "\n",
+        "# Define directory path\n",
+        "pdf_dir = \"/content\"\n",
+        "\n",
+        "# Create the directory\n",
+        "os.makedirs(pdf_dir, exist_ok=True)\n",
+        "\n",
+        "print(f\"Directory created: {pdf_dir}\")\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "ZzNuI1dGSxve",
+        "outputId": "7f482eb6-bff7-4de4-d2c0-d1095d2a6439"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Directory created: /content\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "pip install openai==0.28"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "iHpb5BBxS3C2",
+        "outputId": "9e3f4212-b222-4a13-dc6b-bd988bbb5f15"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Collecting openai==0.28\n",
+            "  Downloading openai-0.28.0-py3-none-any.whl.metadata (13 kB)\n",
+            "Requirement already satisfied: requests>=2.20 in /usr/local/lib/python3.10/dist-packages (from openai==0.28) (2.32.3)\n",
+            "Requirement already satisfied: tqdm in /usr/local/lib/python3.10/dist-packages (from openai==0.28) (4.67.1)\n",
+            "Requirement already satisfied: aiohttp in /usr/local/lib/python3.10/dist-packages (from openai==0.28) (3.11.10)\n",
+            "Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.10/dist-packages (from requests>=2.20->openai==0.28) (3.4.0)\n",
+            "Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.10/dist-packages (from requests>=2.20->openai==0.28) (3.10)\n",
+            "Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.10/dist-packages (from requests>=2.20->openai==0.28) (2.2.3)\n",
+            "Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.10/dist-packages (from requests>=2.20->openai==0.28) (2024.12.14)\n",
+            "Requirement already satisfied: aiohappyeyeballs>=2.3.0 in /usr/local/lib/python3.10/dist-packages (from aiohttp->openai==0.28) (2.4.4)\n",
+            "Requirement already satisfied: aiosignal>=1.1.2 in /usr/local/lib/python3.10/dist-packages (from aiohttp->openai==0.28) (1.3.2)\n",
+            "Requirement already satisfied: async-timeout<6.0,>=4.0 in /usr/local/lib/python3.10/dist-packages (from aiohttp->openai==0.28) (4.0.3)\n",
+            "Requirement already satisfied: attrs>=17.3.0 in /usr/local/lib/python3.10/dist-packages (from aiohttp->openai==0.28) (24.3.0)\n",
+            "Requirement already satisfied: frozenlist>=1.1.1 in /usr/local/lib/python3.10/dist-packages (from aiohttp->openai==0.28) (1.5.0)\n",
+            "Requirement already satisfied: multidict<7.0,>=4.5 in /usr/local/lib/python3.10/dist-packages (from aiohttp->openai==0.28) (6.1.0)\n",
+            "Requirement already satisfied: propcache>=0.2.0 in /usr/local/lib/python3.10/dist-packages (from aiohttp->openai==0.28) (0.2.1)\n",
+            "Requirement already satisfied: yarl<2.0,>=1.17.0 in /usr/local/lib/python3.10/dist-packages (from aiohttp->openai==0.28) (1.18.3)\n",
+            "Requirement already satisfied: typing-extensions>=4.1.0 in /usr/local/lib/python3.10/dist-packages (from multidict<7.0,>=4.5->aiohttp->openai==0.28) (4.12.2)\n",
+            "Downloading openai-0.28.0-py3-none-any.whl (76 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m76.5/76.5 kB\u001b[0m \u001b[31m2.0 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hInstalling collected packages: openai\n",
+            "  Attempting uninstall: openai\n",
+            "    Found existing installation: openai 1.57.4\n",
+            "    Uninstalling openai-1.57.4:\n",
+            "      Successfully uninstalled openai-1.57.4\n",
+            "Successfully installed openai-0.28.0\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import os\n",
+        "from PyPDF2 import PdfReader\n",
+        "from sentence_transformers import SentenceTransformer\n",
+        "import openai\n",
+        "\n",
+        "# Initialize OpenAI API\n",
+        "openai.api_key = \"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\"\n",
+        "\n",
+        "# Initialize embedding model\n",
+        "EMBEDDING_MODEL_NAME = \"all-MiniLM-L6-v2\"\n",
+        "embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)\n",
+        "\n",
+        "# Function to extract text from PDF\n",
+        "def extract_text_from_pdf(pdf_path):\n",
+        "    text_chunks = []\n",
+        "    try:\n",
+        "        reader = PdfReader(pdf_path)\n",
+        "        for page in reader.pages:\n",
+        "            text = page.extract_text()\n",
+        "            if text and text.strip():\n",
+        "                text_chunks.append(text)\n",
+        "    except Exception as e:\n",
+        "        print(f\"Error reading {pdf_path}: {e}\")\n",
+        "    return text_chunks\n",
+        "\n",
+        "# Function to process and embed text chunks\n",
+        "def process_and_embed_chunks(file_path):\n",
+        "    text_chunks = extract_text_from_pdf(file_path)\n",
+        "    embeddings = []\n",
+        "    for chunk in text_chunks:\n",
+        "        embedding = embedding_model.encode(chunk).tolist()\n",
+        "        embeddings.append({\"text\": chunk, \"embedding\": embedding})\n",
+        "    return embeddings\n",
+        "\n",
+        "# Query handling using OpenAI\n",
+        "def query_pipeline(query, embeddings):\n",
+        "    query_embedding = embedding_model.encode(query).tolist()\n",
+        "\n",
+        "    # Perform a simple similarity search\n",
+        "    results = sorted(\n",
+        "        embeddings,\n",
+        "        key=lambda x: cosine_similarity(query_embedding, x[\"embedding\"]),\n",
+        "        reverse=True\n",
+        "    )[:5]  # Top 5 results\n",
+        "\n",
+        "    # Use OpenAI to generate a detailed response\n",
+        "    context = \"\\n\\n\".join([result[\"text\"] for result in results])\n",
+        "    response = openai.ChatCompletion.create(\n",
+        "        model=\"gpt-4o-mini\",\n",
+        "        messages=[\n",
+        "            {\"role\": \"system\", \"content\": \"You are an assistant that answers questions based on provided context.\"},\n",
+        "            {\"role\": \"user\", \"content\": f\"Context: {context}\\n\\nQuestion: {query}\"}\n",
+        "        ]\n",
+        "    )\n",
+        "    return response[\"choices\"][0][\"message\"][\"content\"]\n",
+        "\n",
+        "# Cosine similarity function\n",
+        "def cosine_similarity(vec1, vec2):\n",
+        "    dot_product = sum(a * b for a, b in zip(vec1, vec2))\n",
+        "    norm_a = sum(a * a for a in vec1) ** 0.5\n",
+        "    norm_b = sum(b * b for b in vec2) ** 0.5\n",
+        "    return dot_product / (norm_a * norm_b)\n",
+        "\n",
+        "# Example usage\n",
+        "pdf_dir = \"/content\"\n",
+        "all_embeddings = []\n",
+        "for filename in os.listdir(pdf_dir):\n",
+        "    if filename.endswith(\".pdf\"):\n",
+        "        file_path = os.path.join(pdf_dir, filename)\n",
+        "        all_embeddings.extend(process_and_embed_chunks(file_path))\n",
+        "\n",
+        "# Example query\n",
+        "user_query = input(\"Enter your query\\t\")\n",
+        "response = query_pipeline(user_query, all_embeddings)\n",
+        "print(response)\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "cXbZAcxUS9Ge",
+        "outputId": "0cadc280-82c0-45ea-a90a-0bad1bf2fa3c"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Enter your query\tWhen to use a Line Graph, Pie Chart, or Bar Graph?\n",
+            "You should use a line graph, pie chart, or bar graph based on the specific type of data presentation you need:\n",
+            "\n",
+            "- **Pie Chart**: Use this when you want to compare parts of a whole. It is particularly useful for visualizing components of a single dataset, such as the components of US GDP.\n",
+            "\n",
+            "- **Line Graph**: This is ideal for showing how a variable changes over time. For instance, you can use a line graph to depict the changes in GDP over a series of years.\n",
+            "\n",
+            "- **Bar Graph**: This is effective for comparing different groups of variables. You can use it to compare different components of US GDP, similar to a pie chart. Depending on your goals, you can choose between using a pie chart or a bar graph for comparisons.\n",
+            "\n",
+            "In summary, select the type of graph based on whether you need to show parts of a whole (pie chart), changes over time (line graph), or comparisons between different groups (bar graph).\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
